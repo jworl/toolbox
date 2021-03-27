@@ -8,18 +8,26 @@ help() {
 }
 
 DECRYPT() {
-    DATA=$(jq '[.resources[] | select(.type=="aws_instance") | .instances[].attributes | select(.password_data!="")]' ${2})
+    echo -n "Passphrase for ${1}: "
+    read -s X
 
-    for a in $(seq 0 `echo $DATA | jq length-1`); do
-        ID=$(echo $DATA | jq -r ".[$a] | .id")
-        NM=$(echo $DATA | jq -r ".[$a] | .tags.Name")
-        PI=$(echo $DATA | jq -r ".[$a] | .public_ip")
-        echo $DATA | jq -r ".[$a] | .password_data" | base64 -d > ${host}.bin
-        PD=$(openssl rsautl -decrypt -inkey ${1} -in ${host}.bin)
-        rm -f ${host}.bin
+    for a in $(seq 0 `echo $2 | jq length-1`); do
+        ID=$(echo $2 | jq -r ".[$a] | .id")
+        NM=$(echo $2 | jq -r ".[$a] | .tags.Name")
+        PI=$(echo $2 | jq -r ".[$a] | .public_ip")
+        PE=$(echo $2 | jq -r ".[$a] | .password_data")
+        if [[ $PE != "" ]]; then
+            echo $PE | base64 -d > ${host}.bin
+            PD=$(openssl rsautl -decrypt -passin pass:${X} -inkey ${1} -in ${host}.bin)
+            rm -f ${host}.bin
+        else
+            PD="no passphrase, use private key"
+        fi
         I="{\"id\":\"$ID\", \"name\":\"$NM\", \"public_ip\":\"$PI\", \"password_data\":\"$PD\"}"
         echo $I | jq .
     done
+
+    X=$(echo $(head -128 /dev/urandom | strings | tail -n1000))
 }
 
 TFSTATE="terraform.tfstate"
@@ -53,8 +61,10 @@ if [ -f ${TFSTATE} ]; then
     if [[ $(jq '.resources | length' ${TFSTATE}) -eq 0 ]]; then
         echo "[!] ${TFSTATE} has 0 resources"
         exit 2
+    else
+        DATA=$(jq '[.resources[] | select(.type=="aws_instance") | .instances[].attributes]' ${TFSTATE})
     fi
-    DECRYPT $KEY $TFSTATE
+    DECRYPT $KEY "$DATA"
 else
     echo "[!] did not find terraform.tfstate file."
     echo "[!] is this script in the same directory?"
