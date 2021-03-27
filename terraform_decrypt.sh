@@ -27,6 +27,7 @@ DECRYPT() {
         echo $I | jq .
     done
 
+    I=$(echo $(head -128 /dev/urandom | strings | tail -n1000))
     X=$(echo $(head -128 /dev/urandom | strings | tail -n1000))
 }
 
