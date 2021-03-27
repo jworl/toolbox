@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# author: Joshua Worley
-# contact: joshua.worley@warnermedia.com
-
 help() {
     echo ${0##*/} usage
     echo "-k, --key     : path private key for decrypting passphrase"
