@@ -41,7 +41,7 @@ def http(U, P, H, D):
 
 URL = P.URL
 SEARCH = "appservices/v6/orgs/{}/devices/_search".format(P.ORG_ID)
-UNINSTALL = "appservices/v6/orgs/{}/device_actions".format(P.ORG_ID)
+ACTION = "appservices/v6/orgs/{}/device_actions".format(P.ORG_ID)
 
 SEARCH_DATA = {
   "criteria": {
@@ -58,9 +58,7 @@ SEARCH_DATA = {
   ]
 }
 
-UNINSTALL_DATA = {
-    "action_type": "UNINSTALL_SENSOR"
-}
+
 
 with open(P.TOKEN) as f:
     HEADERS = json.load(f)
@@ -83,9 +81,12 @@ for data in RESULTS:
     ))
     RM.append(data['id'])
 
-
-UNINSTALL_DATA.update({"device_id": RM})
-pp.pprint(UNINSTALL_DATA)
-UDR = http(URL, UNINSTALL, HEADERS, UNINSTALL_DATA)
-print(UDR.status_code)
-pp.pprint(UDR.json())
+for act in ["UNINSTALL_SENSOR", "DELETE_SENSOR"]:
+    ACTION_DATA = {
+        "action_type": act,
+        "device_id": RM
+    }
+    pp.pprint(ACTION_DATA)
+    UDR = http(URL, ACTION, HEADERS, ACTION_DATA)
+    print(UDR.status_code)
+    pp.pprint(UDR.json())
