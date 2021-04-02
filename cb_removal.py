@@ -39,6 +39,21 @@ P = parser.parse_args()
 def http(U, P, H, D):
     return requests.post("{}{}".format(U, P), headers=H, json=D)
 
+def REMOVAL(R, U, A, H):
+    for act in ["UNINSTALL_SENSOR", "DELETE_SENSOR"]:
+        ACTION_DATA = {
+            "action_type": act,
+            "device_id": R
+        }
+        # pp.pprint(ACTION_DATA)
+        UDR = http(U, A, H, ACTION_DATA)
+        if not UDR.status_code == 204:
+            print("[!] {} status code: {}".format(act, UDR.status_code))
+            pp.pprint(UDR.json())
+            return False
+
+    return True
+
 URL = P.URL
 SEARCH = "appservices/v6/orgs/{}/devices/_search".format(P.ORG_ID)
 ACTION = "appservices/v6/orgs/{}/device_actions".format(P.ORG_ID)
@@ -81,12 +96,7 @@ for data in RESULTS:
     ))
     RM.append(data['id'])
 
-for act in ["UNINSTALL_SENSOR", "DELETE_SENSOR"]:
-    ACTION_DATA = {
-        "action_type": act,
-        "device_id": RM
-    }
-    pp.pprint(ACTION_DATA)
-    UDR = http(URL, ACTION, HEADERS, ACTION_DATA)
-    print(UDR.status_code)
-    pp.pprint(UDR.json())
+if REMOVAL(RM, URL, ACTION, HEADERS) is False:
+    print("[&] Failed to remove {}".format(RM))
+else:
+    print("[i] Successful removal of {}".format(RM))
