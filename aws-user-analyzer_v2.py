@@ -149,7 +149,10 @@ def main(c):
         else:
             # remote entries for compliant users
             ANALYSIS.pop(data["UserId"])
-    pp.pprint(ANALYSIS)
+    # pp.pprint(ANALYSIS)
+    epoch = str(datetime.datetime.utcnow().timestamp()).split('.')[0]
+    with open("{}-aws-users.json".format(epoch), 'w') as f:
+        json.dump(ANALYSIS, f)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
