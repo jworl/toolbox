@@ -115,7 +115,7 @@ def cfMailSecurity(u,H,n,z,T,f):
     for recType,entry in D.items():
         for k,v in entry.items():
             update = False
-            if T is not None and v["name"] in T[recType]:
+            if T is not None and recType in T and v["name"] in T[recType]:
                 print("[i] {} {} exists".format(v["name"],k))
                 if v["content"] == T[recType][v["name"]]["content"]:
                     print("[i] {} content correct: {}".format(k, T[recType][v["name"]]["content"]))
@@ -258,6 +258,7 @@ def main(ARGS):
         else:
             orgDnsRecs = None
 
+        pp.pprint(orgDnsRecs)
         rMailSecurity = cfMailSecurity(
             URL, T, ARGS.CREATE,
             Z[ARGS.CREATE]["id"],
@@ -322,7 +323,7 @@ if __name__ == "__main__":
         help='Zone you want to create'
     )
     parser.add_argument(
-        '-f', action='store', required=True, dest='FORWARD',
+        '-f', action='store', required=False, dest='FORWARD',
         help='Forwarding URL'
     )
 
